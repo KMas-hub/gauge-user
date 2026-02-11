@@ -1,0 +1,105 @@
+/* style.css */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: "Segoe UI", sans-serif;
+    font-size: 20px;
+    margin: 0;
+    padding: 120px 20px 20px;
+    background: #002060;
+    color: #e6e6e6;
+}
+
+/* ヘッダー */
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: #002060;
+    color: #e6e6e6;
+    padding: 1em;
+    z-index: 1000;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-left, .header-right {
+    display: flex;
+    align-items: center;
+}
+
+.header-right { margin-left: auto; }
+
+.logo { height: 50px; width: auto; }
+
+.external-button {
+    padding: 8px 16px;
+    margin: 24px;
+    margin-top: 16px;
+    font-size: 24px;
+    background-color: #002060;
+    color: #e6e6e6;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: bold;
+}
+
+.external-button:hover {
+    background-color: #e6e6e6;
+    color: #002060;
+}
+
+#clock {
+    font-size: 2em;
+    font-family: sans-serif;
+    white-space: nowrap;
+}
+
+/* センサー値の色分け */
+#soil2n { color: #4bc0c0; }
+#soil5n { color: #ff9f40; }
+#soil8n { color: #9966ff; }
+#soil10e { color: #ff6384; }
+#soil10w { color: #36a2eb; }
+#soil-main-avg { color: #E67E22; }
+#soil-10-avg { color: #27AE60; }
+#soil-main-avg-yesterday { color: #8E44AD; }
+#soil-10-avg-yesterday { color: #2C3E50; }
+
+/* グラフエリア */
+.chart-block {
+    background: #002060;
+    position: absolute;
+    padding: 12px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(230, 230, 230, 0.1);
+    text-align: center;
+    height: 900px;
+    width: 1600px;
+    top: 125px;
+    left: 250px;
+}
+.chart-block canvas {
+    height: 100% !important;
+    width: 100% !important;
+}
+
+/* 管理者画面用の追加スタイル */
+.admin-log {
+    background: #000;
+    color: #0f0;
+    font-family: monospace;
+    padding: 10px;
+    height: 200px;
+    overflow-y: scroll;
+    border: 1px solid #666;
+    margin-top: 20px;
+    font-size: 16px;
+}

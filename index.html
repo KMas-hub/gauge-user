@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>グラフボード</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-left">
+            <a href="/"><img src="logo.png" alt="Kawahara'sFarm ロゴ" class="logo"></a>
+            <a href="https://kmas-hub.github.io/Dashboard/" class="external-button">ダッシュボード</a>
+        </div>
+        <div class="header-right">
+            <h1>現在時刻　</h1>
+        </div>
+        <div id="clock" class="clock"></div>
+    </header>
+
+    <h2>センサ データ</h2>
+    <p>本2北地: <span id="soil2n">--</span></p>
+    <p>本5北地: <span id="soil5n">--</span></p>
+    <p>本8北地: <span id="soil8n">--</span></p>
+    <p>育西地: <span id="soil10e">--</span></p>
+    <p>育東地: <span id="soil10w">--</span></p>
+
+    <p><br>本圃24h平均: <span id="soil-main-avg">--</span></p>
+    <p>育苗24h平均: <span id="soil-10-avg">--</span></p>
+
+    <p><br>本圃前日平均: <span id="soil-main-avg-yesterday">--</span></p>
+    <p>育苗前日平均: <span id="soil-10-avg-yesterday">--</span></p>
+
+    <div class="chart-block"><canvas id="multchart"></canvas></div>
+
+    <script type="module" src="script.js"></script>
+</body>
+</html>
