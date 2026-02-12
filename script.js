@@ -25,6 +25,21 @@ let sensorDataLog = [];
 let chart;
 
 // ============================================
+// 計算対象のセンサーキー一覧を定義
+// ============================================
+const targetKeys = [
+    "temp1n", "soil1n",
+    "temp2n", "soil2n",
+    "temp3n", "soil3n",
+    "temp4n", "soil4n",
+    "temp5n", "soil5n",
+    "temp6n", "soil6n",
+    "temp7n", "soil7n",
+    "temp8n", "soil8n",
+    "temp9n", "soil9n"
+];
+
+// ============================================
 // Firebaseからデータを受信 (リアルタイム)
 // ============================================
 // 最新300件を取得
@@ -50,7 +65,7 @@ function updateUI() {
     }
 
     // 平均値
-    showGroupAverages();
+    showCurrentAverages();
     showYesterdayAverages();
 
     // グラフ
@@ -58,37 +73,61 @@ function updateUI() {
 }
 
 // ============================================
-// 平均値計算
+// 平均値計算 (個別に集計するロジックへ変更)
 // ============================================
 function calculateAverage(startTime, endTime) {
     const recent = sensorDataLog.filter(entry => {
         const t = new Date(entry.timestamp);
         return t >= startTime && t <= endTime;
     });
+
     if (recent.length === 0) return null;
 
     const sum = {};
     const count = {};
+
+    // 初期化
+    targetKeys.forEach(key => {
+        sum[key] = 0;
+        count[key] = 0;
+    });
+
+    // 集計
     recent.forEach(entry => {
-        for (const [key, value] of Object.entries(entry.values)) {
-            if (value == null) continue;
-            if (!sum[key]) { sum[key] = 0; count[key] = 0; }
-            sum[key] += value;
-            count[key] += 1;
+        // 定義されたキーについてのみ集計
+        targetKeys.forEach(key => {
+            const val = entry.values[key];
+            if (val != null) { // nullまたはundefinedでない場合
+                sum[key] += val;
+                count[key] += 1;
+            }
+        });
+    });
+
+    // 平均算出
+    const averages = {};
+    targetKeys.forEach(key => {
+        if (count[key] > 0) {
+            averages[key] = sum[key] / count[key];
+        } else {
+            averages[key] = null;
         }
     });
-    const averages = {};
-    for (const key of Object.keys(sum)) averages[key] = sum[key] / count[key];
+    
     return averages;
 }
 
-function showGroupAverages() {
+// 直近24時間の平均を表示
+function showCurrentAverages() {
     const now = new Date();
     const start = new Date(now.getTime() - 24 * 60 * 60 * 1000);
     const avg = calculateAverage(start, now);
-    if(avg) updateGroupDisplays(avg, "soil-main-avg", "soil-10-avg");
+    
+    // suffix(接尾辞)なしで呼び出し -> IDは "temp1n-avg" 等になる
+    if(avg) updateIndividualDisplays(avg, ""); 
 }
 
+// 昨日の平均を表示
 function showYesterdayAverages() {
     const now = new Date();
     const start = new Date(now);
@@ -97,39 +136,63 @@ function showYesterdayAverages() {
     const end = new Date(start);
     end.setHours(23, 59, 59, 999);
     const avg = calculateAverage(start, end);
-    if(avg) updateGroupDisplays(avg, "soil-main-avg-yesterday", "soil-10-avg-yesterday");
+
+    // suffixを "-yesterday" に指定 -> IDは "temp1n-avg-yesterday" 等になる
+    if(avg) updateIndividualDisplays(avg, "-yesterday");
 }
 
-function updateGroupDisplays(avg, northId, ewId) {
-    const nKeys = ["soil2n", "soil5n", "soil8n"];
-    const ewKeys = ["soil10e", "soil10w"];
-    
-    const calc = (keys) => {
-        let total = 0, cnt = 0;
-        keys.forEach(k => { if(avg[k] !== undefined) { total += avg[k]; cnt++; }});
-        return cnt > 0 ? (total/cnt).toFixed(2) : "--";
-    };
+// ============================================
+// 個別の平均値をHTMLに反映する関数
+// ============================================
+function updateIndividualDisplays(avg, suffix) {
+    targetKeys.forEach(key => {
+        // ID生成: 変数名 + "-avg" + (昨日の場合は "-yesterday")
+        const elementId = key + "-avg" + suffix;
+        const element = document.getElementById(elementId);
 
-    document.getElementById(northId).textContent = calc(nKeys) + " °C";
-    document.getElementById(ewId).textContent = calc(ewKeys) + " °C";
+        if (element) {
+            if (avg[key] !== null) {
+                element.textContent = avg[key].toFixed(1) + " °C";
+            } else {
+                element.textContent = "--";
+            }
+        }
+    });
 }
 
 // ============================================
 // グラフ描画
 // ============================================
 function drawMultiChart() {
-    // 直近24時間にフィルタ
-    const recentData = sensorDataLog.filter(entry => new Date(entry.timestamp) > new Date(Date.now() - 24 * 60 * 60 * 1000));
+    const now = new Date();
+
+    const timeWindow = 48 * 60 * 60 * 1000;
+    const recentData = sensorDataLog.filter(entry => new Date(entry.timestamp) > new Date(now.getTime() - timeWindow));
+    //const recentData = sensorDataLog.filter(entry => new Date(entry.timestamp) > new Date(Date.now() - 48 * 60 * 60 * 1000));
     if (recentData.length === 0) return;
 
     const labels = recentData.map(entry => new Date(entry.timestamp));
     
     const datasets = [
-        { label: "本2北地", key: "soil2n", color: "#4bc0c0" },
-        { label: "本5北地", key: "soil5n", color: "#ff9f40" },
-        { label: "本8北地", key: "soil8n", color: "#9966ff" },
-        { label: "育西地", key: "soil10e", color: "#ff6384" },
-        { label: "育東地", key: "soil10w", color: "#36a2eb" }
+        { label: "House1気温", key: "temp1n", color: "#FFCDD2" },
+        { label: "House1地温", key: "soil1n", color: "#FFCCBC" },
+        { label: "House2気温", key: "temp2n", color: "#FFE0B2" },
+        { label: "House2地温", key: "soil2n", color: "#FFECB3" },
+        { label: "House3気温", key: "temp3n", color: "#FFF9C4" },
+        { label: "House3地温", key: "soil3n", color: "#F0F4C3" },
+        { label: "House4気温", key: "temp4n", color: "#DCEDC8" },
+        { label: "House4地温", key: "soil4n", color: "#C8E6C9" },
+        { label: "House5気温", key: "temp5n", color: "#B2DFDB" },
+        { label: "House5地温", key: "soil5n", color: "#B2EBF2" },
+        { label: "House6気温", key: "temp6n", color: "#B3E5FC" },
+        { label: "House6地温", key: "soil6n", color: "#BBDEFB" },
+        { label: "House7気温", key: "temp7n", color: "#C5CAE9" },
+        { label: "House7地温", key: "soil7n", color: "#D1C4E9" },
+        { label: "House8気温", key: "temp8n", color: "#E1BEE7" },
+        { label: "House8地温", key: "soil8n", color: "#F8BBD0" },
+        { label: "House9気温", key: "temp9n", color: "#F48FB1" },
+        { label: "House9地温", key: "soil9n", color: "#D7CCC8" },
+
     ].map(setting => ({
         label: setting.label + " (°C)",
         data: recentData.map(e => e.values[setting.key] ?? null),
@@ -138,7 +201,8 @@ function drawMultiChart() {
         yAxisID: "y1",
         tension: 0.3,
         fill: false,
-        spanGaps: true
+        spanGaps: true,
+        pointRadius: 0
     }));
 
     // 00:00ライン用プラグイン
@@ -153,19 +217,22 @@ function drawMultiChart() {
             const max = xAxis.max;
             let current = new Date(min);
             current.setHours(0, 0, 0, 0);
-            while (current.getTime() <= max) {
-                const x = xAxis.getPixelForValue(current);
-                ctx.save();
-                ctx.beginPath();
-                ctx.moveTo(x, yAxis.top);
-                ctx.lineTo(x, yAxis.bottom);
-                ctx.lineWidth = 2;
-                ctx.strokeStyle = '#e6e6e6';
-                ctx.setLineDash([4, 4]);
-                ctx.stroke();
-                ctx.restore();
+           while (current.getTime() <= max) {
+                // 範囲内の日付のみ描画
+                if (current.getTime() >= min) {
+                    const x = xAxis.getPixelForValue(current);
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.moveTo(x, yAxis.top);
+                    ctx.lineTo(x, yAxis.bottom);
+                    ctx.lineWidth = 2;
+                    ctx.strokeStyle = '#e6e6e6';
+                    ctx.setLineDash([4, 4]);
+                    ctx.stroke();
+                    ctx.restore();
+                }
                 current.setDate(current.getDate() + 1);
-            }
+           }
         }
     };
 
@@ -184,16 +251,21 @@ function drawMultiChart() {
             scales: {
                 x: {
                     type: 'time',
-                    time: { unit: 'hour', displayFormats: { hour: 'HH:mm' } },
-                    ticks: { color: "#c8c8c8" },
+                    time: { 
+                        unit: 'hour', 
+                        displayFormats: { hour: 'HH:mm' }, 
+                        stepSize: 6
+                    },
+                    ticks: { color: "#c8c8c8", maxRotation: 0, autoSkip: true },
                     grid: { color: "#c8c8c8" },
                     // 右端に少し余裕を持たせる設定
                     max: (function() {
                         const d = new Date();
                         d.setMinutes(0,0,0);
-                        d.setHours(d.getHours() + 1);
+                        d.setHours(d.getHours() + 3);
                         return d;
-                    })()
+                    }),
+                    min: new Date(now.getTime() - timeWindow)
                 },
                 y1: {
                     type: "linear",
