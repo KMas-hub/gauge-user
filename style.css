@@ -63,15 +63,24 @@ body {
 }
 
 /* センサー値の色分け */
-#soil2n { color: #4bc0c0; }
-#soil5n { color: #ff9f40; }
-#soil8n { color: #9966ff; }
-#soil10e { color: #ff6384; }
-#soil10w { color: #36a2eb; }
-#soil-main-avg { color: #E67E22; }
-#soil-10-avg { color: #27AE60; }
-#soil-main-avg-yesterday { color: #8E44AD; }
-#soil-10-avg-yesterday { color: #2C3E50; }
+#temp1n-avg{color:#FFCDD2;}
+#soil1n-avg{color:#FFCCBC;}
+#temp2n-avg{color:#FFE0B2;}
+#soil2n-avg{color:#FFECB3;}
+#temp3n-avg{color:#FFF9C4;}
+#soil3n-avg{color:#F0F4C3;}
+#temp4n-avg{color:#DCEDC8;}
+#soil4n-avg{color:#C8E6C9;}
+#temp5n-avg{color:#B2DFDB;}
+#soil5n-avg{color:#B2EBF2;}
+#temp6n-avg{color:#B3E5FC;}
+#soil6n-avg{color:#BBDEFB;}
+#temp7n-avg{color:#C5CAE9;}
+#soil7n-avg{color:#D1C4E9;}
+#temp8n-avg{color:#E1BEE7;}
+#soil8n-avg{color:#F8BBD0;}
+#temp9n-avg{color:#F48FB1;}
+#soil9n-avg{color:#D7CCC8;}
 
 /* グラフエリア */
 .chart-block {
