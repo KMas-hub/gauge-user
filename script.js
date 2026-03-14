@@ -1,6 +1,7 @@
 // script.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
 import { getFirestore, collection, query, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
 
 // 【重要】Adminと同じFirebaseの設定をここに貼り付けてください
 const firebaseConfig = {
@@ -14,6 +15,58 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app); // Auth初期化
+const provider = new GoogleAuthProvider();
+
+// ログインボタンの処理
+const loginBtn = document.getElementById('login-btn');
+const mainContent = document.getElementById('main-content');
+
+// --- 修正点1: ログイン・ログアウトの処理を統合 ---
+loginBtn.addEventListener('click', async () => {
+    if (auth.currentUser) {
+        // ログイン中ならログアウト
+        await auth.signOut().catch(console.error);
+    } else {
+        // 未ログインならログインポップアップを表示
+        // このsignInWithPopupを一度だけ実行するようにします
+        try {
+            await signInWithPopup(auth, provider);
+        } catch (error) {
+            console.error("ログインエラー:", error);
+            // ここで前述のAssertion Errorが出る場合、ブラウザのポップアップブロックを確認してください
+        }
+    }
+});
+
+// --- 修正点2: 状態監視は「表示の切り替え」に専念 ---
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        // ログイン成功時
+        if (mainContent) mainContent.style.display = 'block';
+        loginBtn.textContent = "ログアウト";
+        
+        // データの取得を開始（一度だけ実行されるように管理）
+        startFetchingData(); 
+    } else {
+        // 未ログイン時
+        if (mainContent) mainContent.style.display = 'none';
+        loginBtn.textContent = "ログイン";
+    }
+});
+
+// 既存のFirebaseデータ取得ロジックを関数化
+let isSubscribed = false; 
+function startFetchingData() {
+    if (isSubscribed) return; // すでに購読済みなら何もしない
+    
+    const q = query(collection(db, "sensor_logs"), orderBy("timestamp", "desc"), limit(300));
+    onSnapshot(q, (snapshot) => {
+        sensorDataLog = snapshot.docs.map(doc => doc.data()).reverse();
+        if(sensorDataLog.length > 0) { updateUI(); }
+    });
+    isSubscribed = true;
+}
 
 // 時計
 setInterval(() => {
